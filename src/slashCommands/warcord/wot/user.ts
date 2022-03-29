@@ -7,7 +7,7 @@ export = class extends SlashCommands {
     constructor(client: CustomClient) {
         super(client, {
 
-            name: 'wotuser',
+            name: 'wtuser',
             description: 'Show user world of tanks data',
             options: [
                 {
@@ -34,23 +34,23 @@ export = class extends SlashCommands {
         const file = new MessageAttachment('src/assets/icons/wot-icon.png', 'wot-icon.png')
 
         const page1 = new MessageEmbed()
-        .setTitle(`Informações de ${user.nickname}`)
+        .setTitle(`Information of ${user.nickname}`)
         .setColor('#ff0000')
         .setThumbnail('attachment://wot-icon.png')
         .addField('ID', `${user.account_id}`, true)
-        .addField('Criou a conta em', `<t:${user.created_at}:d>`, true)
-        .addField('Avaliação Global', `${user.global_rating}`, true)
-        .addField('Batalhas', `${user.statistics.all.battles}`, true)
+        .addField('Created At', `<t:${user.created_at}:d>`, true)
+        .addField('Global Rating', `${user.global_rating}`, true)
+        .addField('Battles', `${user.statistics.all.battles}`, true)
 
         const page2 = new MessageEmbed()
-        .setTitle(`Informações de ${user.nickname}`)
+        .setTitle(`Information of ${user.nickname}`)
         .setColor('#ff0000')
         .setThumbnail('attachment://wot-icon.png')
-        .addField('Vitórias', `${user.statistics.all.wins}`, true)
-        .addField('Derrotas', `${user.statistics.all.losses}`, true)
-        .addField('Empates', `${user.statistics.all.draws}`, true)
-        .addField('Médias', `\`\`Acertos:\`\` ${user.statistics.all.hits_percents}%\n\`\`Experiência por Batalha:\`\` ${user.statistics.all.battle_avg_xp}\n\`\`Vitórias:\`\` ${parseFloat(`${wins}`).toFixed(2)}%\n\`\`Dano Bloqueado:\`\` ${user.statistics.all.avg_damage_blocked}`, true)
-        .addField('Dano', `\`\`Causado:\`\` ${user.statistics.all.damage_dealt}\n\`\`Máximo:\`\` ${user.statistics.all.max_damage}\n\`\`Tanque:\`\` ${tank?.short_name}`, true)
+        .addField('Wins', `${user.statistics.all.wins}`, true)
+        .addField('Losts', `${user.statistics.all.losses}`, true)
+        .addField('Draws', `${user.statistics.all.draws}`, true)
+        .addField('Avarage', `\`\`Hits:\`\` ${user.statistics.all.hits_percents}%\n\`\`XP per Battle:\`\` ${user.statistics.all.battle_avg_xp}\n\`\`Wins:\`\` ${parseFloat(`${wins}`).toFixed(2)}%\n\`\`Blocked Damage:\`\` ${user.statistics.all.avg_damage_blocked}`, true)
+        .addField('Damage', `\`\`Caused:\`\` ${user.statistics.all.damage_dealt}\n\`\`Max:\`\` ${user.statistics.all.max_damage}\n\`\`Tank:\`\` ${tank?.short_name}`, true)
 
         const page1Row = new MessageActionRow().addComponents(
             create({ style: 'PRIMARY', customId: 'next', emoji: '➡️' })
