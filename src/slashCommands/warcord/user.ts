@@ -1,7 +1,7 @@
-import { SlashCommands } from '../../../structures/SlashCommands'
-import { CustomClient } from '../../../structures/Client'
+import { SlashCommands } from '../../structures/SlashCommands'
+import { CustomClient } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed, MessageAttachment, MessageActionRow, ButtonInteraction, Interaction } from 'discord.js'
-import { create } from '../../../functions/buttonGenerator' 
+import { create } from '../../functions/buttonGenerator' 
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -11,8 +11,8 @@ export = class extends SlashCommands {
             description: 'Show user world of tanks data',
             options: [
                 {
-                    name: 'id',
-                    description: 'ID of User',
+                    name: 'idorname',
+                    description: 'ID/Name of User',
                     type: 'STRING',
                     required: true
                 }
@@ -22,10 +22,17 @@ export = class extends SlashCommands {
 
     run = async (interaction: CommandInteraction) => {
 
-        const user_id = await interaction.options.getString('id')
-        if (!user_id) return interaction.reply({ content: `Its necessary a user ID to use this command.` })
+        const user_option = await interaction.options.getString('idorname')
+        if (!user_option) return interaction.reply({ content: `Its necessary a user ID/Name to use this command.` })
 
-        const user = await this.client.warcord.wargaming.wot.user.get(user_id)
+        let user
+        if (!isNaN(parseInt(user_option))) {
+            user = await this.client.warcord.wargaming.wot.user.get(user_option)
+        } else {
+            const data = await this.client.warcord.wargaming.wot.user.search(user_option)
+            user = await this.client.warcord.wargaming.wot.user.get(`${data[0].account_id}`)
+        }
+
         if (!user) return interaction.reply({ content: `This user doesn't exist.` })
 
         const tank = await this.client.warcord.wargaming.wot.tank.get(`${user.statistics.all.max_damage_tank_id}`)
