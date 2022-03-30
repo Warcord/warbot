@@ -1,0 +1,30 @@
+{
+  "name": "warcord",
+  "version": "0.0.1",
+  "description": "A bot created with WarCord library for Discord",
+  "main": "index.js",
+  "directories": {
+    "test": "https://github.com/Warcord/warbot"
+  },
+  "scripts": {
+    "dev": "npx tsnd --respawn --transpile-only index.ts",
+    "build": "npx tsc"
+  },
+  "author": "GardZock",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "discord.js": "^13.3.1",
+    "dotenv": "^10.0.0",
+    "mongoose": "^6.2.9",
+    "warcord": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/ms": "^0.7.31",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "@typescript-eslint/parser": "^5.5.0",
+    "eslint": "^8.3.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.5.2"
+  }
+}
