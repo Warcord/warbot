@@ -4,6 +4,7 @@ import { join } from "path";
 import { WarCord } from 'warcord'
 import { Client, Interaction, ClientOptions } from 'discord.js';
 import { connect } from 'mongoose';
+import config from '../../config.json'
 
 interface iOfSlash {
     name: string;
@@ -14,12 +15,16 @@ interface iOfSlash {
 class CustomClient extends Client {
 
     slashCommands: iOfSlash[];
+    pvSlashCommands: iOfSlash[];
     warcord: WarCord
+    config: any;
 
     constructor(options: ClientOptions) {
         super(options)
 
+        this.config = config
         this.slashCommands = [];
+        this.pvSlashCommands = [];
         this.loadSlashCommands()
         this.loadEvents()
         this.warcord = new WarCord(`${process.env.APP_ID}`)
@@ -53,22 +58,9 @@ class CustomClient extends Client {
             const commands = readdirSync(`${dir}/${category}`)
 
             for (const command of commands) {
-                
-
-                if (existsSync(`${dir}/${category}/${command}`) && !command.includes('.ts')) {
-                    const otherCommands = readdirSync(`${dir}/${category}/${command}`)
-                    for (const otherCommandFL of otherCommands) {
-                        const commandFolder = require(join(process.cwd(), `${dir}/${category}/${command}/${otherCommandFL}`))
-                        const cmd = new (commandFolder)(this)
-
-                            this.slashCommands.push(cmd)
-                            break;
-                    }
-                }
 
                 if (!command.includes('.ts')) break;
                 const commandClass = require(join(process.cwd(), `${dir}/${category}/${command}`))
-
                 const cmd = new (commandClass)(this)
 
                 this.slashCommands.push(cmd)
