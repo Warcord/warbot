@@ -10,7 +10,7 @@ export = class extends SlashCommands {
         super(client, {
 
             name: 'wtuser',
-            description: 'Get an User by ID or Name',
+            description: 'Get a User by ID or Name',
             options: [
                 {
                     name: 'id',
