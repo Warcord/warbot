@@ -1,6 +1,6 @@
 import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
-import { ButtonInteraction, CommandInteraction, Interaction, MessageActionRow, MessageAttachment, MessageEmbed } from 'discord.js'
+import { ButtonInteraction, CommandInteraction, Interaction, Message, MessageActionRow, MessageAttachment, MessageEmbed } from 'discord.js'
 import { Emojis } from '../../functions/emojiSelector'
 import { UserSearchResolve } from 'warcord'
 import { create } from '../../functions/buttonGenerator'
@@ -78,13 +78,13 @@ export = class extends SlashCommands {
             create({ style: 'PRIMARY', customId: 'prev', emoji: '⬅️' })
         )
 
-        await interaction.reply({ embeds: [page1], components: [page1Row], files: [file] })
+        const message = await interaction.reply({ embeds: [page1], components: [page1Row], files: [file], fetchReply: true })
         
         const filter = (i: Interaction) => {
             return i.user.id == interaction.user?.id && ["next", "prev"].includes((<ButtonInteraction>i).customId)
         }
 
-        const collector = (<Interaction>interaction).channel?.createMessageComponentCollector({ filter, idle: 60000 })
+        const collector = (<Message>message).createMessageComponentCollector({ filter, idle: 60000 })
 
         collector?.on('collect', async (i: ButtonInteraction) => {
 

@@ -56,7 +56,7 @@ export = class extends SlashCommands {
         
         **Total Members:** ${clan.members_count}
         **Accept Join Requests:** ${clan.accepts_join_requests ? "Yes" : "No" }
-
+        
         **Created At:** <t:${clan.created_at}:F>
 
         **Motto:** ${clan.motto}`
