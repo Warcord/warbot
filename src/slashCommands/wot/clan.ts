@@ -24,7 +24,7 @@ export = class extends SlashCommands {
                     required: false
                 }
             ]
-        })
+        }, "WOT")
     }
 
     run = async (interaction: CommandInteraction) => {

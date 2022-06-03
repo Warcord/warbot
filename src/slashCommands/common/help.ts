@@ -1,6 +1,7 @@
 import { SlashCommands } from '../../structures/SlashCommands'
-import { CustomClient } from '../../structures/Client'
+import { CustomClient, iOfSlash } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed } from 'discord.js'
+import pack from '../../../package.json'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -13,23 +14,44 @@ export = class extends SlashCommands {
                     name: 'command_name',
                     description: 'Name of the command.',
                     type: 'STRING',
-                    required: true
+                    required: false
                 }
             ]
-        })
+        }, "INFO")
     }
 
     run = async (interaction: CommandInteraction) => {
 
-        const cmd_name = await interaction.options.getString('command_name', true)
-        if (!cmd_name) return interaction.reply({ content: 'You need put a command name to use this command!' })
-
-        const commandData = { desc: this.description }
-
+        const cmd_name = await interaction.options.getString('command_name')
+    
         const embed = new MessageEmbed()
-        .setTitle(`${cmd_name}`)
         .setColor('#ff0000')
-        .setDescription(`${commandData}`)
+
+        if (cmd_name) {
+
+            const commandData = this.client.slashCommands.filter(s => s.name == cmd_name)[0]
+
+            embed.setTitle(`Information of ${commandData.name}`)
+            .setDescription(`${commandData.description}`)
+            .addField('Category', `${commandData.category}`)
+
+        } else {
+            const commandData: {
+                wot: iOfSlash[],
+                info: iOfSlash[]
+            } = {
+                wot: [],
+                info: []
+            }
+            for (const cmd of this.client.slashCommands) {
+                if (cmd.category == "WOT") commandData?.wot.push(cmd)
+                if (cmd.category == "INFO") commandData?.info.push(cmd)
+            }
+
+            embed.setTitle(`WarBot Commands ${pack.version}`)
+            .addField('WOT', `\`\`${commandData.wot.map(s => s.name).join('``, ``')}\`\``)
+            .addField('INFO', `\`\`${commandData.info[0].name}\`\``)
+        }
 
         return interaction.reply({ embeds: [embed] })
     }

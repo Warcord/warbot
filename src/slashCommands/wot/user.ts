@@ -23,7 +23,7 @@ export = class extends SlashCommands {
                     type: 'STRING'
                 }
             ]
-        })
+        }, "WOT")
     }
 
     run = async (interaction: CommandInteraction) => {

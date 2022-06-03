@@ -9,6 +9,7 @@ import config from '../../config.json'
 interface iOfSlash {
     name: string;
     description: string;
+    category: string;
     run(interaction: Interaction): Promise<void>
 }
 
