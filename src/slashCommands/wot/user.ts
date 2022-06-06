@@ -1,47 +1,57 @@
 import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
-import { CommandInteraction, MessageEmbed, MessageAttachment, MessageActionRow, ButtonInteraction, Interaction } from 'discord.js'
-import { create } from '../../functions/buttonGenerator' 
+import { ButtonInteraction, CommandInteraction, Interaction, Message, MessageActionRow, MessageAttachment, MessageEmbed } from 'discord.js'
+import { Emojis } from '../../functions/emojiSelector'
+import { AllRealms, UserSearchResolve } from 'warcord'
+import { create } from '../../functions/buttonGenerator'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
         super(client, {
 
             name: 'wtuser',
-            description: 'Show user world of tanks data',
+            description: 'Get a User by ID or Name',
             options: [
                 {
-                    name: 'idorname',
-                    description: 'ID/Name of User',
-                    type: 'STRING',
-                    required: true
+                    name: 'id',
+                    description: 'ID of User',
+                    type: 'INTEGER',
+                },
+                {
+                    name: 'name',
+                    description: 'Name of User',
+                    type: 'STRING'
                 }
             ]
-        })
+        }, "WOT")
     }
 
-    run = async (interaction: CommandInteraction) => {
+    run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
-        const user_option = await interaction.options.getString('idorname')
-        if (!user_option) return interaction.reply({ content: `Its necessary a user ID/Name to use this command.` })
+        const id = interaction.options.getInteger('id')
+        const name = interaction.options.getString('name')
 
-        let user
-        if (!isNaN(parseInt(user_option))) {
-            user = await this.client.warcord.wargaming.wot.user.get(user_option)
-        } else {
-            const data = await this.client.warcord.wargaming.wot.user.search(user_option)
-            user = await this.client.warcord.wargaming.wot.user.get(`${data[0].account_id}`)
+        const emojis = {
+
+            no: new Emojis().get(this.client, this.client.config.emojis.res.no),
+            yes: new Emojis().get(this.client, this.client.config.emojis.res.yes)
         }
 
-        if (!user) return interaction.reply({ content: `This user doesn't exist.` })
+        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a user with a **Name** and **ID**.`, ephemeral: true })
+        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a user without a **Name** and **ID**.`, ephemeral: true })
 
-        const tank = await this.client.warcord.wargaming.wot.tank.get(`${user.statistics.all.max_damage_tank_id}`)
-        const wins = (<number>user.statistics.all.wins) * 100 / (<number>user.statistics.all.battles)
+        let toSearch;
+        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.user.search(`${name}`, { realm: config?.realm }); return (<UserSearchResolve[]>search)[0].account_id; } }
+    
+        const user = await this.client.warcord.wot.user.get(`${await toSearch.d()}`, { realm: config?.realm })
+        if (!user) return interaction.reply({ content: `${emojis.no} | No User's found.`, ephemeral: true })
+        const tank = await this.client.warcord.wot.tank.get(`${user?.statistics.all.max_damage_tank_id}`, { realm: config?.realm })
+        const wins = (<number>user?.statistics.all.wins) * 100 / (<number>user?.statistics.all.battles)
 
         const file = new MessageAttachment('src/assets/icons/wot-icon.png', 'wot-icon.png')
-
+        
         const page1 = new MessageEmbed()
-        .setTitle(`Information of ${user.nickname}`)
+        .setTitle(`UserInfo of ${user.nickname}`)
         .setColor('#ff0000')
         .setThumbnail('attachment://wot-icon.png')
         .addField('ID', `${user.account_id}`, true)
@@ -50,7 +60,7 @@ export = class extends SlashCommands {
         .addField('Battles', `${user.statistics.all.battles}`, true)
 
         const page2 = new MessageEmbed()
-        .setTitle(`Information of ${user.nickname}`)
+        .setTitle(`UserInfo of ${user.nickname}`)
         .setColor('#ff0000')
         .setThumbnail('attachment://wot-icon.png')
         .addField('Wins', `${user.statistics.all.wins}`, true)
@@ -67,13 +77,13 @@ export = class extends SlashCommands {
             create({ style: 'PRIMARY', customId: 'prev', emoji: '⬅️' })
         )
 
-        await interaction.reply({ embeds: [page1], components: [page1Row], files: [file] })
+        const message = await interaction.reply({ embeds: [page1], components: [page1Row], files: [file], fetchReply: true })
         
         const filter = (i: Interaction) => {
             return i.user.id == interaction.user?.id && ["next", "prev"].includes((<ButtonInteraction>i).customId)
         }
 
-        const collector = (<Interaction>interaction).channel?.createMessageComponentCollector({ filter, idle: 60000 })
+        const collector = (<Message>message).createMessageComponentCollector({ filter, idle: 60000 })
 
         collector?.on('collect', async (i: ButtonInteraction) => {
 
@@ -84,6 +94,6 @@ export = class extends SlashCommands {
             if (i.customId == "prev") {
                 return await i.update({ embeds: [page1], components: [page1Row], files: [file] })
             }
-        })
+        });
     }
 }
