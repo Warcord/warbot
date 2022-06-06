@@ -1,7 +1,7 @@
 import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed } from 'discord.js'
-import { WOTTopTanksResolve } from 'warcord'
+import { AllRealms, WOTTopTanksResolve } from 'warcord'
 import { Emojis } from '../../functions/emojiSelector'
 
 export = class extends SlashCommands {
@@ -21,14 +21,14 @@ export = class extends SlashCommands {
         }, "WOT")
     }
 
-    run = async (interaction: CommandInteraction) => {
+    run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
         const id = interaction.options.getInteger('id')
 
         const emotes = new Emojis()
-        const tanks = await this.client.warcord.wot.user.topTanks(`${id}`)
-        if (!tanks) return interaction.reply({ content: `${emotes.get(this.client, this.client.config.emojis.res.no)} | This user has no tanks.` })
-        const user = await this.client.warcord.wot.user.get(`${id}`)
+        const tanks = await this.client.warcord.wot.user.topTanks(`${id}`, { realm: config?.realm })
+        if (!tanks) return interaction.reply({ content: `${emotes.get(this.client, this.client.config.emojis.res.no)} | This user has no tanks.`, ephemeral: true })
+        const user = await this.client.warcord.wot.user.get(`${id}`, { realm: config?.realm })
        
 
         const embed = new MessageEmbed()
@@ -38,6 +38,7 @@ export = class extends SlashCommands {
 
         interaction.deferReply()
         for (let i = 0; i < (<number>tanks?.length); i++) {
+            if (!tanks[i]) continue;
 
             const tankData = await this.client.warcord.wot.tank.get(`${(<WOTTopTanksResolve[]>tanks)[i].tank_id}`)
             const getEmoji = emotes.get(this.client, this.client.config.emojis.flags.wot[`${tankData?.nation}`])

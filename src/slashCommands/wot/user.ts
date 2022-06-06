@@ -2,7 +2,7 @@ import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
 import { ButtonInteraction, CommandInteraction, Interaction, Message, MessageActionRow, MessageAttachment, MessageEmbed } from 'discord.js'
 import { Emojis } from '../../functions/emojiSelector'
-import { UserSearchResolve } from 'warcord'
+import { AllRealms, UserSearchResolve } from 'warcord'
 import { create } from '../../functions/buttonGenerator'
 
 export = class extends SlashCommands {
@@ -26,7 +26,7 @@ export = class extends SlashCommands {
         }, "WOT")
     }
 
-    run = async (interaction: CommandInteraction) => {
+    run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
         const id = interaction.options.getInteger('id')
         const name = interaction.options.getString('name')
@@ -37,20 +37,19 @@ export = class extends SlashCommands {
             yes: new Emojis().get(this.client, this.client.config.emojis.res.yes)
         }
 
-        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a user with a **Name** and **ID**.` })
-        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a user without a **Name** and **ID**.` })
+        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a user with a **Name** and **ID**.`, ephemeral: true })
+        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a user without a **Name** and **ID**.`, ephemeral: true })
 
         let toSearch;
-        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.user.search(`${name}`); return (<UserSearchResolve[]>search)[0].account_id; } }
+        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.user.search(`${name}`, { realm: config?.realm }); return (<UserSearchResolve[]>search)[0].account_id; } }
     
-        const user = await this.client.warcord.wot.user.get(`${await toSearch.d()}`)
-        const tank = await this.client.warcord.wot.tank.get(`${user?.statistics.all.max_damage_tank_id}`)
+        const user = await this.client.warcord.wot.user.get(`${await toSearch.d()}`, { realm: config?.realm })
+        if (!user) return interaction.reply({ content: `${emojis.no} | No User's found.`, ephemeral: true })
+        const tank = await this.client.warcord.wot.tank.get(`${user?.statistics.all.max_damage_tank_id}`, { realm: config?.realm })
         const wins = (<number>user?.statistics.all.wins) * 100 / (<number>user?.statistics.all.battles)
 
         const file = new MessageAttachment('src/assets/icons/wot-icon.png', 'wot-icon.png')
         
-        if (!user) return interaction.reply({ content: `${emojis.no} | No User's found.` })
-
         const page1 = new MessageEmbed()
         .setTitle(`UserInfo of ${user.nickname}`)
         .setColor('#ff0000')

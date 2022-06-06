@@ -1,5 +1,6 @@
-import { readdirSync, existsSync } from "fs";
+import { readdirSync } from "fs";
 import { join } from "path";
+import { AllRealms } from 'warcord'
 
 import { WarCord } from 'warcord'
 import { Client, Interaction, ClientOptions } from 'discord.js';
@@ -10,7 +11,7 @@ interface iOfSlash {
     name: string;
     description: string;
     category: string;
-    run(interaction: Interaction): Promise<void>
+    run(interaction: Interaction, config?: { activeGames?: any[], realm?: AllRealms }): Promise<void>
 }
 
 class CustomClient extends Client {

@@ -2,6 +2,7 @@ import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient, iOfSlash } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed } from 'discord.js'
 import pack from '../../../package.json'
+import { AllRealms } from 'warcord'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -20,7 +21,7 @@ export = class extends SlashCommands {
         }, "INFO")
     }
 
-    run = async (interaction: CommandInteraction) => {
+    run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
         const cmd_name = await interaction.options.getString('command_name')
     
@@ -38,19 +39,23 @@ export = class extends SlashCommands {
         } else {
             const commandData: {
                 wot: iOfSlash[],
-                info: iOfSlash[]
+                info: iOfSlash[],
+                config: iOfSlash[]
             } = {
                 wot: [],
-                info: []
+                info: [],
+                config: []
             }
             for (const cmd of this.client.slashCommands) {
                 if (cmd.category == "WOT") commandData?.wot.push(cmd)
                 if (cmd.category == "INFO") commandData?.info.push(cmd)
+                if (cmd.category == "CONFIG") commandData?.config.push(cmd)
             }
 
             embed.setTitle(`WarBot Commands ${pack.version}`)
             .addField('WOT', `\`\`${commandData.wot.map(s => s.name).join('``, ``')}\`\``)
             .addField('INFO', `\`\`${commandData.info[0].name}\`\``)
+            .addField('INFO', `\`\`${commandData.config[0].name}\`\``)
         }
 
         return interaction.reply({ embeds: [embed] })

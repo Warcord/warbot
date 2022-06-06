@@ -1,8 +1,9 @@
 import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
-import { CommandInteraction, MessageEmbed } from 'discord.js'
-import { WOTClanSearchResolve } from 'warcord'
+import { ButtonInteraction, CommandInteraction, Interaction, Message, MessageActionRow, MessageEmbed } from 'discord.js'
+import { AllRealms, WOTClanSearchResolve } from 'warcord'
 import { Emojis } from '../../functions/emojiSelector'
+import { create } from '../../functions/buttonGenerator'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -27,7 +28,7 @@ export = class extends SlashCommands {
         }, "WOT")
     }
 
-    run = async (interaction: CommandInteraction) => {
+    run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
 
         const name = await interaction.options.getString('name_or_tag')
@@ -38,14 +39,14 @@ export = class extends SlashCommands {
             yes: new Emojis().get(this.client, this.client.config.emojis.res.yes)
         }
 
-        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a clan with a **Name** and **ID**.` })
-        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a clan without a **Name** and **ID**.` })
+        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a clan with a **Name** and **ID**.`, ephemeral: true })
+        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a clan without a **Name** or **ID**.`, ephemeral: true })
 
         let toSearch;
-        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.clan.search(`${name}`); return (<WOTClanSearchResolve[]>search)[0].clan_id; } }
+        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.clan.search(`${name}`, { realm: config?.realm }); return (<WOTClanSearchResolve[]>search)[0].clan_id; } }
 
         interaction.deferReply()
-        const clan = await this.client.warcord.wot.clan.get(`${await toSearch.d()}`)
+        const clan = await this.client.warcord.wot.clan.get(`${await toSearch.d()}`, { realm: config?.realm })
         if (!clan || (<any>clan).code) return interaction.editReply({ content: `${emojis.no} | No clans found.` })
 
         let embedDesc = `
@@ -64,7 +65,7 @@ export = class extends SlashCommands {
         clan.old_name ? embedDesc += `\n**Old Name:** ${clan.old_name}` : ''
         clan.old_tag ? embedDesc += `\n**Old Tag:** ${clan.old_tag}` : ''
 
-        const embed = new MessageEmbed()
+        const page1 = new MessageEmbed()
         .setTitle(`${clan.name} [${clan.tag}]`)
         .setThumbnail(`${clan.emblems['x256'] ? clan.emblems.x256[Object.keys(clan.emblems.x256)[0]] : clan.emblems['x195'][Object.keys(clan.emblems['x195'])[0]]}`)
         //@ts-ignore
@@ -73,6 +74,42 @@ export = class extends SlashCommands {
         .setFooter({ text: `${clan.description}` })
         .setTimestamp()
 
-        return interaction.editReply({ embeds: [embed] })
+        
+        const page1Row = new MessageActionRow().addComponents(
+            create({ style: 'PRIMARY', customId: 'next', emoji: '➡️' })
+        )
+
+        const page2Row = new MessageActionRow().addComponents(
+            create({ style: 'PRIMARY', customId: 'prev', emoji: '⬅️' })
+        )
+
+        clan.members.length > 30 ? clan.members.length = 30 : ""
+
+        const page2 = new MessageEmbed()
+        .setTitle(`Member of Clan ${clan.name} [${clan.tag}]`)
+        .addField('Members', `\`\`${clan.members.map(r => { if (!r) return; return r.account_name}).join('``, ``')}\`\`.`)
+        //@ts-ignore
+        .setColor(`${clan.color}`)
+        .setTimestamp()
+
+
+        const m = await interaction.editReply({ embeds: [page1], components: [page1Row] })
+
+        const filter = (i: Interaction) => {
+            return i.user.id == interaction.user?.id && ["next", "prev"].includes((<ButtonInteraction>i).customId)
+        }
+
+        const collector = (<Message>m).createMessageComponentCollector({ filter, idle: 60000 })
+
+        collector?.on('collect', async (i: ButtonInteraction) => {
+
+            if (i.customId == "next") {
+                return await i.update({ embeds: [page2], components: [page2Row] })
+            }
+
+            if (i.customId == "prev") {
+                return await i.update({ embeds: [page1], components: [page1Row] })
+            }
+        });
     }
 }
