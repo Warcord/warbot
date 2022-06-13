@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, User } from 'discord.js';
+import { CommandInteraction, GuildMember, Interaction, MessageAttachment, User } from 'discord.js';
 import { readFileSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import stack from 'stack-trace'
@@ -31,4 +31,5 @@ export class WarLog {
         let fileContent = readFileSync('src/logs/errors.log')
         writeFileSync('src/logs/errors.log', `${`${fileContent}`.length > 1 ? `${fileContent}\n` : ''}${date} ${errorp.getTypeName()}: ${errorp.getFunctionName() ? errorp.getFunctionName() : errorp.getMethodName()} - Information: ${errorp.getFileName()}:${errorp.getLineNumber()}:${errorp.getColumnNumber()}`)
     }
+
 }

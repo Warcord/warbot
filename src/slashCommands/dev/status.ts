@@ -2,6 +2,7 @@ import { SlashCommands } from '../../structures/SlashCommands'
 import { CustomClient } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed } from 'discord.js'
 import { AllRealms } from 'warcord'
+import { Emojis } from '../../functions/emojiSelector'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -17,9 +18,13 @@ export = class extends SlashCommands {
 
         if (interaction.guildId != `${process.env.GUILD_ID}` || interaction.guildId != `${process.env.DEV_ID}`) return;
 
+        const emojis = {
+            no: new Emojis().get(this.client, this.client.config.emojis.res.no)
+        }
+
         interaction.deferReply()
         const botStatus = await this.client.discloud.bot.get(`${this.client.user?.id}`)
-        if (!botStatus) return interaction.reply({ content: `No data found.` })
+        if (!botStatus) return interaction.reply({ content: `${emojis.no} | No data found.` })
 
         const embed = new MessageEmbed()
         .setTitle(`WARBOT STATUS`)
