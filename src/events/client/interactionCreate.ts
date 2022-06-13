@@ -2,7 +2,6 @@ import { Event } from '../../structures/Event'
 import { CustomClient } from '../../structures/Client'
 import { ButtonInteraction, Interaction, Message, MessageActionRow, MessageEmbed, MessageSelectMenu } from 'discord.js'
 import banSchema from '../../database/ban'
-import { writeLog } from '../../functions/log/write'
 import config from '../../database/config'
 import { Emojis } from '../../functions/emojiSelector'
 import { create } from '../../functions/buttonGenerator'
@@ -18,15 +17,14 @@ export = class extends Event {
         if (interaction.isCommand()) {
             if (!interaction.guild) return;
             const banData = await banSchema.findOne({ userID: interaction.user.id })
-            if (banData) {
-                if (banData.userID != "434353523065487360") return;
-            }
-
-            await writeLog({ message: `${interaction.user.id} has used ${interaction.commandName}`})
+            if (banData) return;
 
             const cmd = (<CustomClient>this.client).slashCommands.find((c: { name: string; }) => c.name === interaction.commandName)
             const configData = await config.findOne({ guildID: interaction.guild.id })
-            if (cmd) return cmd.run(interaction, { activeGames: configData.activeGames, realm: configData.realm });
+            if (cmd) {
+                await this.client.log.userLog(interaction)
+                return cmd.run(interaction, { activeGames: configData.activeGames, realm: configData.realm });
+            }
         }
 
         if (interaction.isButton()) {

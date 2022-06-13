@@ -11,7 +11,7 @@ export = class extends SlashCommands {
 
             name: 'config',
             description: 'The bot server config.'
-        }, "CONFIG")
+        }, "UTILS")
     }
 
     run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {

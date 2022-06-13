@@ -18,7 +18,7 @@ export = class extends SlashCommands {
                     required: false
                 }
             ]
-        }, "INFO")
+        }, "UTILS")
     }
 
     run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
@@ -39,23 +39,19 @@ export = class extends SlashCommands {
         } else {
             const commandData: {
                 wot: iOfSlash[],
-                info: iOfSlash[],
-                config: iOfSlash[]
+                utils: iOfSlash[]
             } = {
                 wot: [],
-                info: [],
-                config: []
+                utils: []
             }
             for (const cmd of this.client.slashCommands) {
                 if (cmd.category == "WOT") commandData?.wot.push(cmd)
-                if (cmd.category == "INFO") commandData?.info.push(cmd)
-                if (cmd.category == "CONFIG") commandData?.config.push(cmd)
+                if (cmd.category == "UTILS") commandData?.utils.push(cmd)
             }
 
             embed.setTitle(`WarBot Commands ${pack.version}`)
             .addField('WOT', `\`\`${commandData.wot.map(s => s.name).join('``, ``')}\`\``)
-            .addField('INFO', `\`\`${commandData.info[0].name}\`\``)
-            .addField('INFO', `\`\`${commandData.config[0].name}\`\``)
+            .addField('UTILS', `\`\`${commandData.utils.map(s => s.name).join('``, ``')}\`\``)
         }
 
         return interaction.reply({ embeds: [embed] })

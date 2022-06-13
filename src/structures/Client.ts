@@ -6,6 +6,8 @@ import { WarCord } from 'warcord'
 import { Client, Interaction, ClientOptions } from 'discord.js';
 import { connect } from 'mongoose';
 import config from '../../config.json'
+import { WarLog } from '../functions/warlog'
+import { DiscloudAPI } from "../functions/discloud/discloud-api";
 
 interface iOfSlash {
     name: string;
@@ -20,6 +22,8 @@ class CustomClient extends Client {
     pvSlashCommands: iOfSlash[];
     warcord: WarCord
     config: any;
+    log: WarLog
+    discloud: DiscloudAPI;
 
     constructor(options: ClientOptions) {
         super(options)
@@ -30,6 +34,8 @@ class CustomClient extends Client {
         this.loadSlashCommands()
         this.loadEvents()
         this.warcord = new WarCord(`${process.env.APP_ID}`)
+        this.log = new WarLog()
+        this.discloud = new DiscloudAPI(`${process.env.DC_TOKEN}`)
     }
 
     async initializate() {

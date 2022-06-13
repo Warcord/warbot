@@ -10,4 +10,8 @@ const client = new CustomClient({
     }
 })
 
+process.on('unhandledRejection', (reason: Error, promise) => {
+  return client.log.errorLog(reason)
+});
+
 client.login(process.env.TOKEN)
