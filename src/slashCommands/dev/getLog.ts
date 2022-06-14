@@ -18,32 +18,42 @@ export = class extends SlashCommands {
 
         if (interaction.guildId != `${process.env.GUILD_ID}` || interaction.guildId != `${process.env.DEV_ID}`) return;
 
-        const row = new MessageActionRow()
-        .addComponents(
-            new MessageSelectMenu()
-            .setCustomId('logs')
-            .setMinValues(1)
-            .setMaxValues(1)
-            .setPlaceholder('Select A Log Type')
-            .addOptions([
-                {
-                    label: "Commands Log",
-                    emoji: "👤",
-                    value: "commands"
-                },
-                {
-                    label: "Errors Log",
-                    emoji: "🛑",
-                    value: "errors"
-                },
-                {
-                    label: "Discloud Log",
-                    emoji: "🔧",
-                    value: "dc"
-                }
-            ])
-        )
+        const emojis = {
+            no: new Emojis().get(this.client, this.client.config.emojis.res.no)
+        }
 
-        return interaction.reply({ components: [row] })
+        try {
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageSelectMenu()
+                        .setCustomId('logs')
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                        .setPlaceholder('Select A Log Type')
+                        .addOptions([
+                            {
+                                label: "Commands Log",
+                                emoji: "👤",
+                                value: "commands"
+                            },
+                            {
+                                label: "Errors Log",
+                                emoji: "🛑",
+                                value: "errors"
+                            },
+                            {
+                                label: "Discloud Log",
+                                emoji: "🔧",
+                                value: "dc"
+                            }
+                        ])
+                )
+
+            return interaction.reply({ components: [row] })
+
+        } catch (err: any) {
+            this.client.log.errorLog(err)
+            return interaction.reply({ content: `${emojis.no} | Sorry, an error ocurred.` })
+        }
     }
 }

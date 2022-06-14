@@ -37,63 +37,70 @@ export = class extends SlashCommands {
             yes: new Emojis().get(this.client, this.client.config.emojis.res.yes)
         }
 
-        if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a user with a **Name** and **ID**.`, ephemeral: true })
-        if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a user without a **Name** and **ID**.`, ephemeral: true })
+        try {
 
-        let toSearch;
-        id ? toSearch = { d: () => { return id; } } : toSearch = { d: async() => { const search = await this.client.warcord.wot.user.search(`${name}`, { realm: config?.realm }); return (<UserSearchResolve[]>search)[0].account_id; } }
-    
-        const user = await this.client.warcord.wot.user.get(`${await toSearch.d()}`, { realm: config?.realm })
-        if (!user) return interaction.reply({ content: `${emojis.no} | No User's found.`, ephemeral: true })
-        const tank = await this.client.warcord.wot.tank.get(`${user?.statistics.all.max_damage_tank_id}`, { realm: config?.realm })
-        const wins = (<number>user?.statistics.all.wins) * 100 / (<number>user?.statistics.all.battles)
+            if (id && name) return interaction.reply({ content: `${emojis.no} | You can't search a user with a **Name** and **ID**.`, ephemeral: true })
+            if (!id && !name) return interaction.reply({ content: `${emojis.no} | You can't search a user without a **Name** and **ID**.`, ephemeral: true })
 
-        const file = new MessageAttachment('src/assets/icons/wot-icon.png', 'wot-icon.png')
-        
-        const page1 = new MessageEmbed()
-        .setTitle(`UserInfo of ${user.nickname}`)
-        .setColor('#ff0000')
-        .setThumbnail('attachment://wot-icon.png')
-        .addField('ID', `${user.account_id}`, true)
-        .addField('Created At', `<t:${user.created_at}:d>`, true)
-        .addField('Global Rating', `${user.global_rating}`, true)
-        .addField('Battles', `${user.statistics.all.battles}`, true)
+            let toSearch;
+            id ? toSearch = { d: () => { return id; } } : toSearch = { d: async () => { const search = await this.client.warcord.wot.user.search(`${name}`, { realm: config?.realm }); return (<UserSearchResolve[]>search)[0].account_id; } }
 
-        const page2 = new MessageEmbed()
-        .setTitle(`UserInfo of ${user.nickname}`)
-        .setColor('#ff0000')
-        .setThumbnail('attachment://wot-icon.png')
-        .addField('Wins', `${user.statistics.all.wins}`, true)
-        .addField('Losts', `${user.statistics.all.losses}`, true)
-        .addField('Draws', `${user.statistics.all.draws}`, true)
-        .addField('Avarage', `\`\`Hits:\`\` ${user.statistics.all.hits_percents}%\n\`\`XP per Battle:\`\` ${user.statistics.all.battle_avg_xp}\n\`\`Wins:\`\` ${parseFloat(`${wins}`).toFixed(2)}%\n\`\`Blocked Damage:\`\` ${user.statistics.all.avg_damage_blocked}`, true)
-        .addField('Damage', `\`\`Caused:\`\` ${user.statistics.all.damage_dealt}\n\`\`Max:\`\` ${user.statistics.all.max_damage}\n\`\`Tank:\`\` ${tank?.short_name}`, true)
+            const user = await this.client.warcord.wot.user.get(`${await toSearch.d()}`, { realm: config?.realm })
+            if (!user) return interaction.reply({ content: `${emojis.no} | No User's found.`, ephemeral: true })
+            const tank = await this.client.warcord.wot.tank.get(`${user?.statistics.all.max_damage_tank_id}`, { realm: config?.realm })
+            const wins = (<number>user?.statistics.all.wins) * 100 / (<number>user?.statistics.all.battles)
 
-        const page1Row = new MessageActionRow().addComponents(
-            create({ style: 'PRIMARY', customId: 'next', emoji: '➡️' })
-        )
+            const file = new MessageAttachment('src/assets/icons/wot-icon.png', 'wot-icon.png')
 
-        const page2Row = new MessageActionRow().addComponents(
-            create({ style: 'PRIMARY', customId: 'prev', emoji: '⬅️' })
-        )
+            const page1 = new MessageEmbed()
+                .setTitle(`UserInfo of ${user.nickname}`)
+                .setColor('#ff0000')
+                .setThumbnail('attachment://wot-icon.png')
+                .addField('ID', `${user.account_id}`, true)
+                .addField('Created At', `<t:${user.created_at}:d>`, true)
+                .addField('Global Rating', `${user.global_rating}`, true)
+                .addField('Battles', `${user.statistics.all.battles}`, true)
 
-        const message = await interaction.reply({ embeds: [page1], components: [page1Row], files: [file], fetchReply: true })
-        
-        const filter = (i: Interaction) => {
-            return i.user.id == interaction.user?.id && ["next", "prev"].includes((<ButtonInteraction>i).customId)
+            const page2 = new MessageEmbed()
+                .setTitle(`UserInfo of ${user.nickname}`)
+                .setColor('#ff0000')
+                .setThumbnail('attachment://wot-icon.png')
+                .addField('Wins', `${user.statistics.all.wins}`, true)
+                .addField('Losts', `${user.statistics.all.losses}`, true)
+                .addField('Draws', `${user.statistics.all.draws}`, true)
+                .addField('Avarage', `\`\`Hits:\`\` ${user.statistics.all.hits_percents}%\n\`\`XP per Battle:\`\` ${user.statistics.all.battle_avg_xp}\n\`\`Wins:\`\` ${parseFloat(`${wins}`).toFixed(2)}%\n\`\`Blocked Damage:\`\` ${user.statistics.all.avg_damage_blocked}`, true)
+                .addField('Damage', `\`\`Caused:\`\` ${user.statistics.all.damage_dealt}\n\`\`Max:\`\` ${user.statistics.all.max_damage}\n\`\`Tank:\`\` ${tank?.short_name}`, true)
+
+            const page1Row = new MessageActionRow().addComponents(
+                create({ style: 'PRIMARY', customId: 'next', emoji: '➡️' })
+            )
+
+            const page2Row = new MessageActionRow().addComponents(
+                create({ style: 'PRIMARY', customId: 'prev', emoji: '⬅️' })
+            )
+
+            const message = await interaction.reply({ embeds: [page1], components: [page1Row], files: [file], fetchReply: true })
+
+            const filter = (i: Interaction) => {
+                return i.user.id == interaction.user?.id && ["next", "prev"].includes((<ButtonInteraction>i).customId)
+            }
+
+            const collector = (<Message>message).createMessageComponentCollector({ filter, idle: 60000 })
+
+            collector?.on('collect', async (i: ButtonInteraction) => {
+
+                if (i.customId == "next") {
+                    return await i.update({ embeds: [page2], components: [page2Row], files: [file] })
+                }
+
+                if (i.customId == "prev") {
+                    return await i.update({ embeds: [page1], components: [page1Row], files: [file] })
+                }
+            });
+
+        } catch (err: any) {
+            this.client.log.errorLog(err)
+            return interaction.reply({ content: `${emojis.no} | Sorry, an error ocurred.` })
         }
-
-        const collector = (<Message>message).createMessageComponentCollector({ filter, idle: 60000 })
-
-        collector?.on('collect', async (i: ButtonInteraction) => {
-
-            if (i.customId == "next") {
-                return await i.update({ embeds: [page2], components: [page2Row], files: [file] })
-            }
-
-            if (i.customId == "prev") {
-                return await i.update({ embeds: [page1], components: [page1Row], files: [file] })
-            }
-        });
     }
 }
