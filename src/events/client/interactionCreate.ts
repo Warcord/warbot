@@ -14,6 +14,9 @@ export = class extends Event {
     }
 
     run = async (interaction: Interaction) => {
+
+        this.client.log.susAccount(interaction)
+
         if (interaction.isCommand()) {
             if (!interaction.guild) return;
             const banData = await banSchema.findOne({ userID: interaction.user.id })
