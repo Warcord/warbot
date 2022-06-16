@@ -2,7 +2,7 @@ import { CustomClient } from './Client'
 import { ApplicationCommand } from 'discord.js'
 
 
-type AllCategory = "WOT" | "INFO" | "CONFIG"
+type AllCategory = "WOT" | "UTILS" | "DEV"
 class SlashCommands {
 
     client: CustomClient

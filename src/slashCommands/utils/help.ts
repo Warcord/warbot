@@ -3,6 +3,7 @@ import { CustomClient, iOfSlash } from '../../structures/Client'
 import { CommandInteraction, MessageEmbed } from 'discord.js'
 import pack from '../../../package.json'
 import { AllRealms } from 'warcord'
+import { Emojis } from '../../functions/emojiSelector'
 
 export = class extends SlashCommands {
     constructor(client: CustomClient) {
@@ -18,46 +19,51 @@ export = class extends SlashCommands {
                     required: false
                 }
             ]
-        }, "INFO")
+        }, "UTILS")
     }
 
     run = async (interaction: CommandInteraction, config?: { activeGames?: any[], realm?: AllRealms }) => {
 
-        const cmd_name = await interaction.options.getString('command_name')
-    
-        const embed = new MessageEmbed()
-        .setColor('#ff0000')
-
-        if (cmd_name) {
-
-            const commandData = this.client.slashCommands.filter(s => s.name == cmd_name)[0]
-
-            embed.setTitle(`Information of ${commandData.name}`)
-            .setDescription(`${commandData.description}`)
-            .addField('Category', `${commandData.category}`)
-
-        } else {
-            const commandData: {
-                wot: iOfSlash[],
-                info: iOfSlash[],
-                config: iOfSlash[]
-            } = {
-                wot: [],
-                info: [],
-                config: []
-            }
-            for (const cmd of this.client.slashCommands) {
-                if (cmd.category == "WOT") commandData?.wot.push(cmd)
-                if (cmd.category == "INFO") commandData?.info.push(cmd)
-                if (cmd.category == "CONFIG") commandData?.config.push(cmd)
-            }
-
-            embed.setTitle(`WarBot Commands ${pack.version}`)
-            .addField('WOT', `\`\`${commandData.wot.map(s => s.name).join('``, ``')}\`\``)
-            .addField('INFO', `\`\`${commandData.info[0].name}\`\``)
-            .addField('INFO', `\`\`${commandData.config[0].name}\`\``)
+        const emojis = {
+            no: new Emojis().get(this.client, this.client.config.emojis.res.no)
         }
 
-        return interaction.reply({ embeds: [embed] })
+        try {
+            const cmd_name = await interaction.options.getString('command_name')
+
+            const embed = new MessageEmbed()
+                .setColor('#ff0000')
+
+            if (cmd_name) {
+
+                const commandData = this.client.slashCommands.filter(s => s.name == cmd_name)[0]
+
+                embed.setTitle(`Information of ${commandData.name}`)
+                    .setDescription(`${commandData.description}`)
+                    .addField('Category', `${commandData.category}`)
+
+            } else {
+                const commandData: {
+                    wot: iOfSlash[],
+                    utils: iOfSlash[]
+                } = {
+                    wot: [],
+                    utils: []
+                }
+                for (const cmd of this.client.slashCommands) {
+                    if (cmd.category == "WOT") commandData?.wot.push(cmd)
+                    if (cmd.category == "UTILS") commandData?.utils.push(cmd)
+                }
+
+                embed.setTitle(`WarBot Commands ${pack.version}`)
+                    .addField('WOT', `\`\`${commandData.wot.map(s => s.name).join('``, ``')}\`\``)
+                    .addField('UTILS', `\`\`${commandData.utils.map(s => s.name).join('``, ``')}\`\``)
+            }
+
+            return interaction.reply({ embeds: [embed] })
+        } catch (err: any) {
+            this.client.log.errorLog(err)
+            return interaction.reply({ content: `${emojis.no} | Sorry, an error ocurred.` })
+        }
     }
 }

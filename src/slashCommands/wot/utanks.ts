@@ -25,30 +25,40 @@ export = class extends SlashCommands {
 
         const id = interaction.options.getInteger('id')
 
-        const emotes = new Emojis()
-        const tanks = await this.client.warcord.wot.user.topTanks(`${id}`, { realm: config?.realm })
-        if (!tanks) return interaction.reply({ content: `${emotes.get(this.client, this.client.config.emojis.res.no)} | This user has no tanks.`, ephemeral: true })
-        const user = await this.client.warcord.wot.user.get(`${id}`, { realm: config?.realm })
-       
-
-        const embed = new MessageEmbed()
-        .setTitle(`Top 5 Tanks of ${user?.nickname}`)
-        .setColor('#ff0000')
-
-
-        interaction.deferReply()
-        for (let i = 0; i < (<number>tanks?.length); i++) {
-            if (!tanks[i]) continue;
-
-            const tankData = await this.client.warcord.wot.tank.get(`${(<WOTTopTanksResolve[]>tanks)[i].tank_id}`)
-            const getEmoji = emotes.get(this.client, this.client.config.emojis.flags.wot[`${tankData?.nation}`])
-
-            if (i == 0) { embed.setThumbnail(`${(<any>tankData?.images)['big_icon']}`) }
-            let fieldText = `**Name:** ${tankData?.short_name}`
-            getEmoji ? fieldText = `${getEmoji}` + ' ' + fieldText : ''
-            embed.addField(`${i+1}. ${fieldText}`, ` ↳ **ID:** ${tankData?.tank_id} **TIER:** ${tankData?.tier}`)
+        const emojis = {
+            no: new Emojis().get(this.client, this.client.config.emojis.res.no)
         }
 
-        return interaction.editReply({ embeds: [embed] })
+        try {
+
+            const emotes = new Emojis()
+            const tanks = await this.client.warcord.wot.user.topTanks(`${id}`, { realm: config?.realm })
+            if (!tanks) return interaction.reply({ content: `${emojis.no} | This user has no tanks.`, ephemeral: true })
+            const user = await this.client.warcord.wot.user.get(`${id}`, { realm: config?.realm })
+
+
+            const embed = new MessageEmbed()
+                .setTitle(`Top 5 Tanks of ${user?.nickname}`)
+                .setColor('#ff0000')
+
+            interaction.deferReply()
+            for (let i = 0; i < (<number>tanks?.length); i++) {
+                if (!tanks[i]) continue;
+
+                const tankData = await this.client.warcord.wot.tank.get(`${(<WOTTopTanksResolve[]>tanks)[i].tank_id}`)
+                const getEmoji = emotes.get(this.client, this.client.config.emojis.flags.wot[`${tankData?.nation}`])
+
+                if (i == 0) { embed.setThumbnail(`${(<any>tankData?.images)['big_icon']}`) }
+                let fieldText = `**Name:** ${tankData?.short_name}`
+                getEmoji ? fieldText = `${getEmoji}` + ' ' + fieldText : ''
+                embed.addField(`${i + 1}. ${fieldText}`, ` ↳ **ID:** ${tankData?.tank_id} **TIER:** ${tankData?.tier}`)
+            }
+
+            return interaction.editReply({ embeds: [embed] })
+
+        } catch (err: any) {
+            this.client.log.errorLog(err)
+            return interaction.reply({ content: `${emojis.no} | Sorry, an error ocurred.` })
+        }
     }
 }
