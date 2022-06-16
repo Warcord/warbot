@@ -3,11 +3,11 @@ import { join } from "path";
 import { AllRealms } from 'warcord'
 
 import { WarCord } from 'warcord'
-import { Client, Interaction, ClientOptions } from 'discord.js';
+import { Client, Interaction, ClientOptions, Guild } from 'discord.js';
 import { connect } from 'mongoose';
 import config from '../../config.json'
 import { WarLog } from '../functions/warlog'
-import { DiscloudAPI } from "../functions/discloud/discloud-api";
+import { DiscloudAPI } from "discloud-api";
 
 interface iOfSlash {
     name: string;
@@ -41,6 +41,36 @@ class CustomClient extends Client {
     async initializate() {
         await connect(process.env.MONGO_URL || 'Error')
         await this.guilds.cache.get((<string>process.env.GUILD_ID))?.commands.set(this.slashCommands)
+
+        try {
+            let array = []
+            for (let i = 0; i < this.slashCommands.length; i++) {
+                const command = this.slashCommands[i]
+                if (command.category == "DEV") continue;
+                array.push(command)
+            }
+
+            await this.application?.commands.set(array)
+            this.guilds.cache.get((<string>process.env.GUILD_ID))?.commands.set(this.slashCommands)
+        } catch(err: any) {
+
+            for (let i = 0; i < this.guilds.cache.size; i++) {
+                const guild = (<Guild[]>Array.from(this.guilds.cache.values()))[i]
+                if (guild.id == `${process.env.GUILD_ID}`) {
+                    guild.commands.set([])
+                    continue
+                };
+    
+                let array = []
+                for (let i = 0; i < this.slashCommands.length; i++) {
+                    const command = this.slashCommands[i]
+                    if (command.category == "DEV" && ![process.env.DEV_ID].includes(guild.id)) continue;
+                    array.push(command)
+                }
+                guild.commands.set(array)
+            }
+        }
+        
         return console.log('Database conectada com sucesso!');
     }
 
