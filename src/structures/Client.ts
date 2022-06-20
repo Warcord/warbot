@@ -1,8 +1,7 @@
 import { readdirSync } from "fs";
 import { join } from "path";
-import { AllRealms } from 'warcord'
 
-import { WarCord } from 'warcord'
+import { WarCord, AllRealms } from 'warcord'
 import { Client, Interaction, ClientOptions, Guild } from 'discord.js';
 import { connect } from 'mongoose';
 import config from '../../config.json'

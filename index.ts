@@ -3,11 +3,7 @@ import { CustomClient } from './src/structures/Client'
 config({ path: '.env' })
 
 const client = new CustomClient({ 
-    intents: 3919,
-    allowedMentions: {
-        parse: ['users', 'roles'],
-        repliedUser: true
-    }
+    intents: 3919
 })
 
 process.on('unhandledRejection', (reason: Error, promise) => {
